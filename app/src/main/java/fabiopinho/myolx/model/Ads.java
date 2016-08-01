@@ -26,8 +26,8 @@ public class Ads extends RealmObject{
     private String price_type;
     private String price_numeric ;
     private int map_zoom ;
-    private float map_lat ;
-    private float map_lon ;
+    private double map_lat ;
+    private double map_lon ;
     private int map_radius ;
     private String map_location ;
     private long city_id ;
@@ -150,19 +150,19 @@ public class Ads extends RealmObject{
         this.map_zoom = map_zoom;
     }
 
-    public float getMap_lat() {
+    public double getMap_lat() {
         return map_lat;
     }
 
-    public void setMap_lat(float map_lat) {
+    public void setMap_lat(double map_lat) {
         this.map_lat = map_lat;
     }
 
-    public float getMap_lon() {
+    public double getMap_lon() {
         return map_lon;
     }
 
-    public void setMap_lon(float map_lon) {
+    public void setMap_lon(double map_lon) {
         this.map_lon = map_lon;
     }
 

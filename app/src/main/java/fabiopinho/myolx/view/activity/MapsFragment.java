@@ -1,6 +1,7 @@
 package fabiopinho.myolx.view.activity;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +14,14 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import fabiopinho.myolx.R;
+import fabiopinho.myolx.model.Ads;
+import fabiopinho.myolx.utils.MessageEvent;
+import io.realm.RealmList;
 
 public class MapsFragment extends Fragment
         implements OnMapReadyCallback {
@@ -53,10 +61,39 @@ public class MapsFragment extends Fragment
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+    }
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    public void updateAdapter() {
+        if(mMap!=null)
+            mMap.clear();
+
+        RealmList<Ads> ads = ((MainActivity) getActivity()).ads;
+        for (Ads ad : ads) {
+            double lat = ad.getMap_lat();
+            double lon = ad.getMap_lon();
+            // Add a marker in Sydney and move the camera
+            LatLng loc = new LatLng(lat, lon);
+            mMap.addMarker(new MarkerOptions().position(loc).title(ad.getTitle()));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
+        }
+    }
+
+    // This method will be called when a MessageEvent is posted (in the UI thread for Toast)
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        if(event.message.equals("update"))
+            updateAdapter();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
     }
 }

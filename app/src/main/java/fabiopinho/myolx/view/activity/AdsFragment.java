@@ -1,21 +1,23 @@
 package fabiopinho.myolx.view.activity;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import fabiopinho.myolx.R;
 import fabiopinho.myolx.model.Ads;
-import fabiopinho.myolx.presenters.impl.AdsPresenter;
+import fabiopinho.myolx.utils.MessageEvent;
 import fabiopinho.myolx.view.adapters.AdsAdapter;
 import io.realm.RealmList;
 
@@ -23,17 +25,10 @@ import io.realm.RealmList;
  * Created by pinho on 30/07/2016.
  */
 public class AdsFragment extends Fragment {
-
-
     private Context context;
 
     private RecyclerView rvAds;
-    private AdsPresenter presenter;
     private AdsAdapter adapter;
-
-    private RealmList<Ads> ads;
-    private String responseId;
-
     public AdsFragment() {
     }
 
@@ -50,25 +45,34 @@ public class AdsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        presenter = new AdsPresenter(this);
+
+    }
+
+    // This method will be called when a MessageEvent is posted (in the UI thread for Toast)
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        if(event.message.equals("update"))
+            updateAdapter();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        presenter.subscribeCallbacks();
+        EventBus.getDefault().register(this);
     }
 
     @Override
     public void onStop() {
+        EventBus.getDefault().unregister(this);
         super.onStop();
-        presenter.unSubscribeCallbacks();
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -84,27 +88,10 @@ public class AdsFragment extends Fragment {
         rvAds.setItemAnimator(new DefaultItemAnimator());
     }
 
-    public void showAds(RealmList<Ads> ads) {
-        this.ads = ads;
+    public void updateAdapter() {
+        RealmList<Ads> ads = ((MainActivity) getActivity()).ads;
         adapter = new AdsAdapter(ads);
         rvAds.setAdapter(adapter);
     }
 
-    public void showMessage(String message){
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-
-        // Make sure that we are currently visible
-        if (this.isVisible()) {
-            // If we are becoming invisible, then...
-            if (!isVisibleToUser) {
-                Log.d("MyFragment", "Not visible anymore.  Stopping audio.");
-                presenter.getAllAdsByResponseInfoId(1);
-            }
-        }
-    }
 }

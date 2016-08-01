@@ -3,6 +3,7 @@ package fabiopinho.myolx.view.activity;
 import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
@@ -20,8 +21,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.gms.plus.model.people.Person;
 
+import org.greenrobot.eventbus.EventBus;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -31,9 +34,11 @@ import fabiopinho.myolx.R;
 import fabiopinho.myolx.model.Ads;
 import fabiopinho.myolx.model.ResponseInfo;
 import fabiopinho.myolx.presenters.impl.AdsPresenter;
+import fabiopinho.myolx.utils.MessageEvent;
 import fabiopinho.myolx.view.slidingtabs.SlidingTabLayout;
 import fabiopinho.myolx.view.activity.base.BaseActivity;
 import io.realm.Realm;
+import io.realm.RealmList;
 
 public class MainActivity extends BaseActivity {
 
@@ -52,6 +57,9 @@ public class MainActivity extends BaseActivity {
      */
     private ViewPager mViewPager;
 
+    public AdsPresenter presenter;
+    RealmList<Ads> ads = new RealmList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +74,9 @@ public class MainActivity extends BaseActivity {
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        presenter = new AdsPresenter(this);
+        presenter.subscribeCallbacks();
 
         // Give the SlidingTabLayout the ViewPager
         SlidingTabLayout slidingTabLayout = (SlidingTabLayout) findViewById(R.id.sliding_tabs);
@@ -87,43 +98,21 @@ public class MainActivity extends BaseActivity {
         });
         slidingTabLayout.setViewPager(mViewPager);
 
-        // Attach the page change listener to tab strip and **not** the view pager inside the activity
-        slidingTabLayout.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        /*
+        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+         */
 
-            // This method will be invoked when a new page becomes selected.
-            @Override
-            public void onPageSelected(int position) {
+        download_info();
+    }
 
-            }
-
-            // This method will be invoked when the current page is scrolled
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            // Called when the scroll state changes:
-            // SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING, SCROLL_STATE_SETTLING
-            @Override
-            public void onPageScrollStateChanged(int state) {
-            }
-        });
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-
-                test();
-            }
-        });
-
+    public void showAds(RealmList<Ads> ads) {
+       this.ads = ads;
+        EventBus.getDefault().post(new MessageEvent("update"));
     }
 
 
-    public void test(){
+    public void download_info(){
         // Tag used to cancel the request
         String tag_json_obj = "json_obj_req";
 
@@ -139,7 +128,7 @@ public class MainActivity extends BaseActivity {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                       interpretJson(response);
+                        interpretJson(response);
                         pDialog.hide();
                     }
                 }, new Response.ErrorListener() {
@@ -160,35 +149,54 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    public void interpretJson(JSONObject jsonObject){
-        // Persist your data in a transaction
-        // Get a Realm instance for this thread
-        ResponseInfo mRi = new ResponseInfo(1);
-        Ads ad = new Ads();
-        ad.setId("asdasd");
-        ad.setTitle("adsa");
-        ad.setPrice_numeric("123");
-        ad.setDescription("desc");
+    public void interpretJson(final JSONObject jsonObject){
 
+        Log.d("Fabio", "JSON: "+jsonObject.toString());
 
-        Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        final ResponseInfo ri = realm.copyToRealm(mRi); // Persist unmanaged objects
-        final Ads managedAd = realm.copyToRealm(ad); // Persist unmanaged objects
-        ri.getAds().add(managedAd);
-        realm.commitTransaction();
+        final Realm realm = Realm.getDefaultInstance();
         // Asynchronously update objects on a background thread
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
-                /*Dog dog = bgRealm.where(Dog.class).equalTo("age", 1).findFirst();
-                dog.setAge(3);*/
+
+                try {
+                    int page = jsonObject.getInt("page");
+                    ResponseInfo mRi = new ResponseInfo(page);
+                    final ResponseInfo ri = bgRealm.copyToRealmOrUpdate(mRi); // Persist unmanaged objects
+                    int adsOnPage = jsonObject.getInt("ads_on_page");
+                    JSONArray adsArray = jsonObject.getJSONArray("ads");
+                    for(int i = 0; i< adsOnPage; i++){
+                        JSONObject adObject = adsArray.getJSONObject(i);
+                        Log.d("Fabio", "Ad: "+adObject);
+                        Ads ad = new Ads();
+                        ad.setId(adObject.getString("id"));
+                        ad.setTitle(adObject.getString("title"));
+                        ad.setMap_lat(adObject.getDouble("map_lat"));
+                        ad.setMap_lon(adObject.getDouble("map_lon"));
+                        String pricetype = adObject.getString("price_type");
+                        ad.setPrice_type(pricetype);
+                        if(pricetype.equals("budget")){
+                            ad.setPrice_numeric("budget");
+                        }else if(pricetype.equals("price")){
+                            ad.setPrice_numeric(adObject.getString("price_numeric"));
+                        }
+
+                        ad.setDescription(adObject.getString("description"));
+                        final Ads managedAd = bgRealm.copyToRealmOrUpdate(ad); // Persist unmanaged objects
+                        ri.getAds().add(managedAd);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
                 // Original queries and Realm objects are automatically updated.
-               Log.d("Fabio", "Ad: "+ managedAd.getId());
+                Log.d("Fabio", "SUCCESS ADDING STUFF");
+                presenter.getAllAdsByResponseInfoId(1);
+
             }
         });
     }
@@ -210,8 +218,8 @@ public class MainActivity extends BaseActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-
+        if (id == R.id.action_sync) {
+            download_info();
             return true;
         }
 
@@ -229,13 +237,12 @@ public class MainActivity extends BaseActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private ArrayList<String> tabTitles = new ArrayList();
+        private String tab1 = "Map";
+        private String tab2 = "List";
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
-
-            tabTitles.add("Map");
-            tabTitles.add("List");
-
-
+            tabTitles.add(tab1);
+            tabTitles.add(tab2);
         }
 
         @Override
@@ -258,9 +265,9 @@ public class MainActivity extends BaseActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "Map";
+                    return tab1;
                 case 1:
-                    return "List";
+                    return tab2;
             }
             return null;
         }

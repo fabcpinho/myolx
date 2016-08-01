@@ -7,6 +7,7 @@ import fabiopinho.myolx.realm.repository.IReponseInfoRepository;
 import fabiopinho.myolx.realm.repository.impl.AdsRepository;
 import fabiopinho.myolx.realm.repository.impl.ResponseInfoRepository;
 import fabiopinho.myolx.view.activity.AdsFragment;
+import fabiopinho.myolx.view.activity.MainActivity;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
@@ -14,22 +15,17 @@ import io.realm.RealmResults;
  * Created by pinho on 31.07.16.
  */
 public class AdsPresenter implements IAdsPresenter {
-    private AdsFragment view;
+    private MainActivity view;
 
     private IAdsRepository.OnSaveAdCallback onSaveAdCallback;
     private IAdsRepository.OnGetAllAdsCallback onGetAllAdsCallback;
     private IAdsRepository.OnGetAdByIdCallback onGetAdByIdCallback;
     private IAdsRepository.OnGetAdsCallback onGetAdsCallback;
 
-    //private IResponseInfoRepository.OnGetResponseInfoCallback onGetUniversityByIdCallback;
-
     private IAdsRepository adsRepository;
-    private IReponseInfoRepository responseRepository;
-
-    public AdsPresenter(AdsFragment view) {
+    public AdsPresenter(MainActivity view) {
         this.view = view;
         adsRepository = new AdsRepository();
-        responseRepository = new ResponseInfoRepository();
     }
 
     @Override

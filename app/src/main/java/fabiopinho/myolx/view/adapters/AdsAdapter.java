@@ -1,6 +1,7 @@
 package fabiopinho.myolx.view.adapters;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,13 +12,13 @@ import fabiopinho.myolx.model.Ads;
 import io.realm.RealmList;
 
 /**
- * Created by roma on 03.11.15.
+ * Created by pinho on 01.08.16.
  */
 public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.AdsViewHolder> {
 
     private RealmList<Ads> ads;
 
-    public AdsAdapter(RealmList<Ads> students) {
+    public AdsAdapter(RealmList<Ads> ads) {
         this.ads = ads;
     }
 

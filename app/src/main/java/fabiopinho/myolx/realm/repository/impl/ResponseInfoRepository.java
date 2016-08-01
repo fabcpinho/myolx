@@ -17,7 +17,7 @@ public class ResponseInfoRepository implements IReponseInfoRepository{
 
     @Override
     public void addResponseInfo(ResponseInfo response, OnAddResponseInfoCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
+        Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
         ResponseInfo u = realm.createObject(ResponseInfo.class);
         u.setPageNumber(response.getPageNumber());
@@ -30,9 +30,9 @@ public class ResponseInfoRepository implements IReponseInfoRepository{
 
     @Override
     public void deleteResponseInfoById(String Id, OnDeleteResponseInfoCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
+        Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
-        ResponseInfo university = realm.where(ResponseInfo.class).equalTo(RealmTable.ID, Id).findFirst();
+        ResponseInfo university = realm.where(ResponseInfo.class).equalTo(RealmTable.ResponseInfo.ID, Id).findFirst();
         university.removeFromRealm();
         realm.commitTransaction();
 
@@ -42,7 +42,7 @@ public class ResponseInfoRepository implements IReponseInfoRepository{
 
     @Override
     public void getAllResponseInfos(OnGetAllResponseInfoCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
+        Realm realm = Realm.getDefaultInstance();
         RealmQuery<ResponseInfo> query = realm.where(ResponseInfo.class);
         RealmResults<ResponseInfo> results = query.findAll();
 
@@ -52,8 +52,8 @@ public class ResponseInfoRepository implements IReponseInfoRepository{
 
     @Override
     public void getResponseInfoById(int id, OnGetResponseInfoByIdCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
-        ResponseInfo result = realm.where(ResponseInfo.class).equalTo(RealmTable.ID, id).findFirst();
+        Realm realm = Realm.getDefaultInstance();
+        ResponseInfo result = realm.where(ResponseInfo.class).equalTo(RealmTable.ResponseInfo.ID, id).findFirst();
 
         if (callback != null)
             callback.onSuccess(result);

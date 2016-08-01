@@ -18,7 +18,7 @@ import io.realm.RealmResults;
 public class AdsRepository implements IAdsRepository{
     @Override
     public void addAd(Ads ad, OnSaveAdCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
+        Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
         Ads realmAd = realm.createObject(Ads.class);
         realmAd.setId(ad.getId());
@@ -34,7 +34,7 @@ public class AdsRepository implements IAdsRepository{
 
     @Override
     public void addAdByResponseInfoId(Ads ad, String responseId, OnSaveAdCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
+        Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
 
         Ads realmAd = realm.createObject(Ads.class);
@@ -43,7 +43,7 @@ public class AdsRepository implements IAdsRepository{
         realmAd.setDescription(ad.getDescription());
         realmAd.setPrice_numeric(ad.getPrice_numeric());
 
-        ResponseInfo rp = realm.where(ResponseInfo.class).equalTo(RealmTable.ID, responseId).findFirst();
+        ResponseInfo rp = realm.where(ResponseInfo.class).equalTo(RealmTable.ResponseInfo.ID, responseId).findFirst();
         rp.getAds().add(realmAd);
 
         realm.commitTransaction();
@@ -56,7 +56,7 @@ public class AdsRepository implements IAdsRepository{
 
     @Override
     public void getAllAds(OnGetAllAdsCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
+        Realm realm = Realm.getDefaultInstance();
         RealmResults<Ads> results = realm.where(Ads.class).findAll();
 
         if (callback != null)
@@ -65,18 +65,20 @@ public class AdsRepository implements IAdsRepository{
 
     @Override
     public void getAllAdsByResponseInfoId(int id, OnGetAdsCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
-        ResponseInfo r = realm.where(ResponseInfo.class).equalTo(RealmTable.ID, id).findFirst();
-        RealmList<Ads> students = r.getAds();
+        Realm realm = Realm.getDefaultInstance();
+        ResponseInfo r = realm.where(ResponseInfo.class).equalTo(RealmTable.ResponseInfo.ID, id).findFirst();
+        RealmList<Ads> ads = new RealmList<>();
+        if(r!=null)
+             ads = r.getAds();
 
         if (callback != null)
-            callback.onSuccess(students);
+            callback.onSuccess(ads);
     }
 
     @Override
     public void getAdById(String id, OnGetAdByIdCallback callback) {
-        Realm realm = Realm.getInstance(MyOlxApp.getInstance());
-        Ads ads = realm.where(Ads.class).equalTo(RealmTable.ID, id).findFirst();
+        Realm realm = Realm.getDefaultInstance();
+        Ads ads = realm.where(Ads.class).equalTo(RealmTable.Ads.ID, id).findFirst();
 
         if (callback != null)
             callback.onSuccess(ads);
