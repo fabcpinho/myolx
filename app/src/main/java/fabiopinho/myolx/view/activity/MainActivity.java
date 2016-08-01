@@ -1,9 +1,8 @@
-package fabiopinho.myolx.activities;
+package fabiopinho.myolx.view.activity;
 
+import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
@@ -11,20 +10,32 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 
-import android.widget.TextView;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.plus.model.people.Person;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import fabiopinho.myolx.MyOlxApp;
 import fabiopinho.myolx.R;
-import fabiopinho.myolx.view.SlidingTabLayout;
+import fabiopinho.myolx.model.Ads;
+import fabiopinho.myolx.model.ResponseInfo;
+import fabiopinho.myolx.presenters.impl.AdsPresenter;
+import fabiopinho.myolx.view.slidingtabs.SlidingTabLayout;
+import fabiopinho.myolx.view.activity.base.BaseActivity;
+import io.realm.Realm;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -101,13 +112,87 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onClick(final View view) {
+                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
+                test();
             }
         });
 
     }
+
+
+    public void test(){
+        // Tag used to cancel the request
+        String tag_json_obj = "json_obj_req";
+
+        String url = "https://olx.pt/i2/ads/?json=1&amp;search[category_id]=25";
+
+        final ProgressDialog pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Loading...");
+        pDialog.show();
+
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
+                url, null,
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                       interpretJson(response);
+                        pDialog.hide();
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d("Fabio", "Error: " + error.getMessage());
+                // hide the progress dialog
+                pDialog.hide();
+            }
+        });
+
+        // Adding request to request queue
+        if(MyOlxApp.getInstance()!=null)
+            MyOlxApp.getInstance().addToRequestQueue(jsonObjReq, tag_json_obj);
+        else{
+            Log.d("Fabio", "MyOlxApp.getInstance() returning null");
+        }
+    }
+
+    public void interpretJson(JSONObject jsonObject){
+        // Persist your data in a transaction
+        // Get a Realm instance for this thread
+        ResponseInfo mRi = new ResponseInfo(1);
+        Ads ad = new Ads();
+        ad.setId("asdasd");
+        ad.setTitle("adsa");
+        ad.setPrice_numeric("123");
+        ad.setDescription("desc");
+
+
+        Realm realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        final ResponseInfo ri = realm.copyToRealm(mRi); // Persist unmanaged objects
+        final Ads managedAd = realm.copyToRealm(ad); // Persist unmanaged objects
+        ri.getAds().add(managedAd);
+        realm.commitTransaction();
+        // Asynchronously update objects on a background thread
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                /*Dog dog = bgRealm.where(Dog.class).equalTo("age", 1).findFirst();
+                dog.setAge(3);*/
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                // Original queries and Realm objects are automatically updated.
+               Log.d("Fabio", "Ad: "+ managedAd.getId());
+            }
+        });
+    }
+
 
 
     @Override
@@ -126,45 +211,16 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
+    @Override
+    protected void initComponents() {
 
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
     }
 
     /**
@@ -187,15 +243,9 @@ public class MainActivity extends AppCompatActivity {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             if(position==0){
-
-/*
-                MyFragment1 fragmentS1 = new MyFragment1();
-                getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, fragmentS1).commit();
-*/
-
-                return MapsActivity.newInstance(0);
+                return MapsFragment.newInstance();
             }else
-                return PlaceholderFragment.newInstance(1);
+                return AdsFragment.newInstance();
         }
 
         @Override

@@ -1,4 +1,4 @@
-package fabiopinho.myolx.activities;
+package fabiopinho.myolx.view.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -15,22 +15,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import fabiopinho.myolx.R;
 
-public class MapsActivity extends Fragment
+public class MapsFragment extends Fragment
         implements OnMapReadyCallback {
 
     private GoogleMap mMap;
 
-    /**
-     * The fragment argument representing the section number for this
-     * fragment.
-     */
-    private static final String ARG_SECTION_NUMBER = "section_number";
-
-    public static MapsActivity newInstance(int sectionNumber) {
-        MapsActivity fragment = new MapsActivity();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
+    public static MapsFragment newInstance() {
+        MapsFragment fragment = new MapsFragment();
         return fragment;
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fabiopinho.myolx.view;
+package fabiopinho.myolx.view.slidingtabs;
 
 import android.R;
 import android.content.Context;

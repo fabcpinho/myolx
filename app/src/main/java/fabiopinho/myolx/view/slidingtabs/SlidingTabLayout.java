@@ -1,4 +1,4 @@
-package fabiopinho.myolx.view;
+package fabiopinho.myolx.view.slidingtabs;
 
 import android.content.Context;
 import android.graphics.Typeface;
