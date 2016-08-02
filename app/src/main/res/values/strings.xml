@@ -4,4 +4,8 @@
 
     <string name="action_settings">Sync</string>
     <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="action_previous">Previous</string>
+    <string name="action_next">Next</string>
+    <string name="action_finish">Finish</string>
 </resources>

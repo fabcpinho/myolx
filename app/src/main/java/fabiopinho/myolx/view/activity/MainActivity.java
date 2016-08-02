@@ -42,19 +42,7 @@ import io.realm.RealmList;
 
 public class MainActivity extends BaseActivity {
 
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     private ViewPager mViewPager;
 
     public AdsPresenter presenter;
@@ -97,11 +85,6 @@ public class MainActivity extends BaseActivity {
             }
         });
         slidingTabLayout.setViewPager(mViewPager);
-
-        /*
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-         */
 
         download_info();
     }
@@ -180,7 +163,8 @@ public class MainActivity extends BaseActivity {
                         }else if(pricetype.equals("price")){
                             ad.setPrice_numeric(adObject.getString("price_numeric"));
                         }
-
+                        ad.setStatus(adObject.getString("status"));
+                        ad.setCity_label(adObject.getString("city_label"));
                         ad.setDescription(adObject.getString("description"));
                         final Ads managedAd = bgRealm.copyToRealmOrUpdate(ad); // Persist unmanaged objects
                         ri.getAds().add(managedAd);
@@ -224,11 +208,6 @@ public class MainActivity extends BaseActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void initComponents() {
-
     }
 
     /**

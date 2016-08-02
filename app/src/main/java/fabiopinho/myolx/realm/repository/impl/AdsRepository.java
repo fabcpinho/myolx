@@ -1,5 +1,7 @@
 package fabiopinho.myolx.realm.repository.impl;
 
+import android.util.Log;
+
 import java.util.UUID;
 
 import fabiopinho.myolx.MyOlxApp;

@@ -1,17 +1,22 @@
 package fabiopinho.myolx.view.activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.greenrobot.eventbus.EventBus;
@@ -20,17 +25,26 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import fabiopinho.myolx.R;
 import fabiopinho.myolx.model.Ads;
+import fabiopinho.myolx.realm.table.RealmTable;
 import fabiopinho.myolx.utils.MessageEvent;
 import io.realm.RealmList;
 
 public class MapsFragment extends Fragment
-        implements OnMapReadyCallback {
+        implements OnMapReadyCallback{
 
     private GoogleMap mMap;
+    private Context context;
 
     public static MapsFragment newInstance() {
         MapsFragment fragment = new MapsFragment();
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.context = context;
+
     }
 
     @Override
@@ -73,8 +87,18 @@ public class MapsFragment extends Fragment
             double lon = ad.getMap_lon();
             // Add a marker in Sydney and move the camera
             LatLng loc = new LatLng(lat, lon);
-            mMap.addMarker(new MarkerOptions().position(loc).title(ad.getTitle()));
+            mMap.addMarker(new MarkerOptions().position(loc).title(ad.getTitle()).snippet(ad.getDescription()));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
+            /*mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+
+                @Override
+                public void onInfoWindowClick(Marker arg0) {
+                    Intent intent = new Intent(context, AdDetailActivity.class);
+                    intent.putExtra(RealmTable.Ads.ID, arg0.getId());
+                    startActivity(intent);
+
+                }
+            });*/
         }
     }
 
@@ -84,6 +108,8 @@ public class MapsFragment extends Fragment
         if(event.message.equals("update"))
             updateAdapter();
     }
+
+
 
     @Override
     public void onStart() {
@@ -96,4 +122,5 @@ public class MapsFragment extends Fragment
         EventBus.getDefault().unregister(this);
         super.onStop();
     }
+
 }

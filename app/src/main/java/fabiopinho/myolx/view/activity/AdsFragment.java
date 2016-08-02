@@ -1,6 +1,7 @@
 package fabiopinho.myolx.view.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -9,7 +10,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -17,6 +17,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import fabiopinho.myolx.R;
 import fabiopinho.myolx.model.Ads;
+import fabiopinho.myolx.realm.table.RealmTable;
 import fabiopinho.myolx.utils.MessageEvent;
 import fabiopinho.myolx.view.adapters.AdsAdapter;
 import io.realm.RealmList;
@@ -24,7 +25,7 @@ import io.realm.RealmList;
 /**
  * Created by pinho on 30/07/2016.
  */
-public class AdsFragment extends Fragment {
+public class AdsFragment extends Fragment{
     private Context context;
 
     private RecyclerView rvAds;
@@ -92,6 +93,13 @@ public class AdsFragment extends Fragment {
         RealmList<Ads> ads = ((MainActivity) getActivity()).ads;
         adapter = new AdsAdapter(ads);
         rvAds.setAdapter(adapter);
+        adapter.setOnItemClickListener(new AdsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(String id) {
+                Intent intent = new Intent(context, AdDetailActivity.class);
+                intent.putExtra(RealmTable.Ads.ID, id);
+                startActivity(intent);
+            }
+        });
     }
-
 }
